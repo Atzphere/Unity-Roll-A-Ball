@@ -10,11 +10,28 @@ public class PlayerController : MonoBehaviour {
     public Text timeRemainingText;
     public float totalTime = 60;
 
+    private enum LostReason
+    {
+        fall,
+        time,
+        enemy
+    }
+
+    private enum MovementPowerUp
+    {
+        none,
+        noSlide,
+        fly
+    }
+
     private Rigidbody rb;
     private int count;
     private float currentTime;
     private float timeRemaining;
     private bool gameDone = false;
+    private LostReason endReason;
+    private MovementPowerUp powerUpState;
+
 
 	void Start ()
     { 
@@ -22,7 +39,10 @@ public class PlayerController : MonoBehaviour {
         count = 0;
         SetCountText ();
         resultText.text = "";
-        currentTime = 0;      
+        currentTime = 0;
+        powerUpState = MovementPowerUp.none;
+        
+
 	}
 
 	void FixedUpdate ()
@@ -45,6 +65,19 @@ public class PlayerController : MonoBehaviour {
             other.gameObject.SetActive(false);
             count = count + 1;
             SetCountText();
+        }
+        if (other.gameObject.CompareTag("NoSlidePowerup"))
+        {
+            powerUpState = MovementPowerUp.noSlide;
+        }
+
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("Enemy"))
+        {
+            endReason = LostReason.enemy;
         }
     }
 
@@ -75,7 +108,26 @@ public class PlayerController : MonoBehaviour {
         }
         if (hasLost())
         {
-            resultText.text = "You Ran Out Of Time!";
+  
+            switch (endReason)
+            {
+                case LostReason.time:
+                    {
+                        resultText.text = "You Ran Out Of Time!";
+                        break;
+                    }
+                case LostReason.fall:
+                    {
+                        resultText.text = "You Fell Out!";
+                        break;
+                    }
+                case LostReason.enemy:
+                    {
+                        resultText.text = "An Enemy Killed You!";
+                        break;
+                    }
+            }
+
             gameDone = true;
         }
     }
@@ -87,16 +139,37 @@ public class PlayerController : MonoBehaviour {
 
     private bool hasLost()
     {
-        return timeRemaining <= 0;
+        bool hasLost = false;
+        if (timeRemaining <= 0)
+        {
+            endReason = LostReason.time;
+            hasLost = true;
+        }
+
+        else if (rb.position.y <= 0)
+        {
+            endReason = LostReason.fall;
+            hasLost = true;
+        }
+
+        else if (endReason == LostReason.enemy)
+        {
+            hasLost = true;
+        }
+        return hasLost;
     }
 
     private void Moveball()
     {
+        if (powerUpState == MovementPowerUp.noSlide)
+        {
+            //rb.velocity = new Vector3(0, 0, 0);
+        }
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
 
         Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-
+        Debug.Log(movement.ToString());
         rb.AddForce(movement * speed);
 
     }

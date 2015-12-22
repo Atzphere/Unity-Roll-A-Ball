@@ -161,16 +161,32 @@ public class PlayerController : MonoBehaviour {
 
     private void Moveball()
     {
+        float moveVertical = 0;
+        float moveHorizontal = 0;
+
         if (powerUpState == MovementPowerUp.noSlide)
         {
-            //rb.velocity = new Vector3(0, 0, 0);
+            MovePowered(ref moveVertical, ref moveHorizontal);
         }
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
+        else
+        {
+            MoveNormal(ref moveVertical, ref moveHorizontal);
+        }
+        
 
         Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
         Debug.Log(movement.ToString());
         rb.AddForce(movement * speed);
 
+    }
+    private void MoveNormal(ref float moveVert, ref float moveHoriz)
+    {
+        moveHoriz = Input.GetAxis("Horizontal");
+        moveVert = Input.GetAxis("Vertical");
+        
+    }
+    private void MovePowered(ref float moveVert, ref float moveHoriz)
+    {
+        if (Input.GetKeyDown(""))
     }
 }
